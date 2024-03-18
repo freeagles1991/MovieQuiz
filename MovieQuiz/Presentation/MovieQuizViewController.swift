@@ -11,6 +11,11 @@ final class MovieQuizViewController: UIViewController {
     // переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
     
+    let alert = UIAlertController(
+        title: "Этот раунд окончен!",
+        message: "Ваш результат ???",
+        preferredStyle: .alert)
+    
     // массив вопросов
     private let questions: [QuizQuestion] = [
         QuizQuestion(image: "The Godfather", text: "Рейтинг этого фильма больше чем 6?", correctAnswer: true),
@@ -43,6 +48,9 @@ final class MovieQuizViewController: UIViewController {
     // приватный метод, который меняет цвет рамки
     // принимает на вход булевое значение и ничего не возвращает
     private func showAnswerResult(isCorrect: Bool) {
+        if isCorrect{
+            correctAnswers += 1
+        }
         imageView.layer.masksToBounds = true // даём разрешение на рисование рамки
         imageView.layer.borderWidth = 8 // толщина рамки
         imageView.layer.cornerRadius = 6 // радиус скругления углов рамки
@@ -65,8 +73,13 @@ final class MovieQuizViewController: UIViewController {
     // приватный метод, который содержит логику перехода в один из сценариев
     // метод ничего не принимает и ничего не возвращает
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questions.count - 1 { // 1
-            // идём в состояние "Результат квиза"
+        if currentQuestionIndex == questions.count - 1 {
+            let text = "Результат: \(correctAnswers)/10"
+            let viewModel = QuizResultsViewModel(
+                title: "Раунд завершен!",
+                text: text,
+                buttonText: "Сыграть ещё раз")
+            show(quiz: viewModel)
         } else { // 2
             currentQuestionIndex += 1
             
@@ -75,6 +88,28 @@ final class MovieQuizViewController: UIViewController {
             
             show(quiz: viewModel)
         }
+    }
+    
+    // приватный метод для показа результатов раунда квиза
+    // принимает вью модель QuizResultsViewModel и ничего не возвращает
+    private func show(quiz result: QuizResultsViewModel) {
+        let alert = UIAlertController(
+            title: result.title,
+            message: result.text,
+            preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: result.buttonText, style: .default) { _ in
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            let firstQuestion = self.questions[self.currentQuestionIndex]
+            let viewModel = self.convert(model: firstQuestion)
+            self.show(quiz: viewModel)
+        }
+        
+        alert.addAction(action)
+        
+        self.present(alert, animated: true, completion: nil)
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {
@@ -111,4 +146,13 @@ struct QuizStepViewModel {
   let questionNumber: String
 }
 
+// для состояния "Результат квиза"
+struct QuizResultsViewModel {
+  // строка с заголовком алерта
+  let title: String
+  // строка с текстом о количестве набранных очков
+  let text: String
+  // текст для кнопки алерта
+  let buttonText: String
+}
 
