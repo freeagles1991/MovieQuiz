@@ -4,17 +4,17 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
+    
+    @IBOutlet private weak var noButton: UIButton!
+    
+    @IBOutlet private weak var yesButton: UIButton!
+    
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
     private var currentQuestionIndex = 0
     
     // переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
-    
-    let alert = UIAlertController(
-        title: "Этот раунд окончен!",
-        message: "Ваш результат ???",
-        preferredStyle: .alert)
     
     // массив вопросов
     private let questions: [QuizQuestion] = [
@@ -34,6 +34,9 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         show(quiz: convert(model: questions[0]))
+        imageView.layer.cornerRadius = 20
+        noButton.layer.cornerRadius = 15
+        yesButton.layer.cornerRadius = 15
     }
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
@@ -53,8 +56,7 @@ final class MovieQuizViewController: UIViewController {
         }
         imageView.layer.masksToBounds = true // даём разрешение на рисование рамки
         imageView.layer.borderWidth = 8 // толщина рамки
-        imageView.layer.cornerRadius = 6 // радиус скругления углов рамки
-        imageView.layer.borderColor = isCorrect ? UIColor.yp_Green.cgColor : UIColor.yp_Red.cgColor
+        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
            // код, который мы хотим вызвать через 1 секунду
@@ -68,6 +70,7 @@ final class MovieQuizViewController: UIViewController {
         textLabel.text = step.question
         counterLabel.text = step.questionNumber
         imageView.layer.borderWidth = 0
+        enableButtons()
     }
     
     // приватный метод, который содержит логику перехода в один из сценариев
@@ -112,16 +115,28 @@ final class MovieQuizViewController: UIViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
+    private func disableButtons(){
+        yesButton.isEnabled = false
+        noButton.isEnabled = false
+    }
+    
+    private func enableButtons(){
+        yesButton.isEnabled = true
+        noButton.isEnabled = true
+    }
+    
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
         let userAnswer = false
         showAnswerResult(isCorrect: currentQuestion.correctAnswer == userAnswer)
+        disableButtons()
     }
     
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         let currentQuestion = questions[currentQuestionIndex]
         let userAnswer = true
         showAnswerResult(isCorrect: currentQuestion.correctAnswer == userAnswer)
+        disableButtons()
     }
     
 }
