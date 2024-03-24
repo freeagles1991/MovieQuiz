@@ -25,6 +25,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
         
         questionFactory = QuestionFactory(delegate: self)
         
+        questionFactory?.requestNextQuestion()
+        
         imageView.layer.cornerRadius = 20
         noButton.layer.cornerRadius = 15
         yesButton.layer.cornerRadius = 15
