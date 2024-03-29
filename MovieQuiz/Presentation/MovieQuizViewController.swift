@@ -18,6 +18,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
+    private var alertPresenter: AlertPresenter?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -44,6 +45,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
         DispatchQueue.main.async { [weak self] in
                 self?.show(quiz: viewModel)
         }
+    }
+    // MARK: - AlertPresenterDelegate
+    func didResultsWasShown() {
+        self.currentQuestionIndex = 0
+        self.correctAnswers = 0
+        questionFactory?.requestNextQuestion()
     }
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
@@ -85,37 +92,17 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
             let text = "Результат: \(correctAnswers)/10"
-            let viewModel = QuizResultsViewModel(
+            let viewModel = AlertModel(
                 title: "Раунд завершен!",
-                text: text,
+                message: text,
                 buttonText: "Сыграть ещё раз")
-            show(quiz: viewModel)
-        } else { // 2
+            alertPresenter?.show(quiz: viewModel)
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+        } else {
             currentQuestionIndex += 1
             self.questionFactory?.requestNextQuestion()
         }
-    }
-    
-    // приватный метод для показа результатов раунда квиза
-    // принимает вью модель QuizResultsViewModel и ничего не возвращает
-    private func show(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
-            preferredStyle: .alert)
-        
-        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            
-            questionFactory?.requestNextQuestion()
-        }
-        
-        alert.addAction(action)
-        
-        self.present(alert, animated: true, completion: nil)
     }
     
     private func disableButtons(){
