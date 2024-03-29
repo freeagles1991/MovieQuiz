@@ -25,6 +25,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
         super.viewDidLoad()
         
         questionFactory = QuestionFactory(delegate: self)
+        alertPresenter = AlertPresenter(delegate: self)
         
         questionFactory?.requestNextQuestion()
         
@@ -96,7 +97,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                 title: "Раунд завершен!",
                 message: text,
                 buttonText: "Сыграть ещё раз")
-            alertPresenter?.show(quiz: viewModel)
+            self.alertPresenter?.show(quiz: viewModel)
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
         } else {

@@ -25,7 +25,7 @@ final class AlertPresenter{
         
         let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
             guard let self = self else { return }
-            delegate?.didResultsWasShown()
+            self.delegate?.didResultsWasShown()
         }
         
         alert.addAction(action)
