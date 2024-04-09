@@ -21,6 +21,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticServiceImplementation?
     
+    private var alert = UIAlertController(
+        title: "",
+        message: "",
+        preferredStyle: .alert)
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,13 +100,21 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
             guard let statisticService = statisticService else { return }
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
+            let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
             statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
-            let text = "Ваш результат: \(correctAnswers)/10 \n Количество сыгранных квизов: \(statisticService.gamesCount) \n Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date)) \n Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"
+            let text = """
+            Ваш результат: \(correctAnswers)/10
+            Количество сыгранных квизов: \(statisticService.gamesCount)
+            Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(formattedDate))
+            Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
+            """
             let viewModel = AlertModel(
                 title: "Этот раунд окончен!",
                 message: text,
                 buttonText: "Сыграть ещё раз")
-            self.alertPresenter?.show(quiz: viewModel)
+            self.alertPresenter?.show(quiz: viewModel, alert: self.alert)
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
         } else {

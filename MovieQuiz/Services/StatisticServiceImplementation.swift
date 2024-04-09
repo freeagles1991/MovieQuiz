@@ -12,7 +12,7 @@ final class StatisticServiceImplementation: StatisticService{
         get{
             guard let data = userDefaults.data(forKey: Keys.total.rawValue),
                   let accuracy = try? JSONDecoder().decode(Double.self, from: data) else {
-                return .init(0)
+                return 0
             }
             return accuracy
         }
@@ -29,7 +29,7 @@ final class StatisticServiceImplementation: StatisticService{
         get{
             guard let data = userDefaults.data(forKey: Keys.gamesCount.rawValue),
                   let count = try? JSONDecoder().decode(Int.self, from: data) else {
-                return .init(0)
+                return 0
             }
             return count
         }
