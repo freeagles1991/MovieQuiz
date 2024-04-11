@@ -12,8 +12,8 @@ struct GameRecord: Codable {
     let total: Int
     let date: Date
     
-    func compareResults(_ previousGameRecord: GameRecord) -> Bool{
-        correct > previousGameRecord.correct
+    func compareResults(newGameResult: GameRecord, previousGameRecord: GameRecord) -> Bool{
+        newGameResult.correct > previousGameRecord.correct
     }
 
 }

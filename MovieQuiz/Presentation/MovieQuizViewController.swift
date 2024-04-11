@@ -21,11 +21,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticServiceImplementation?
     
-    private var alert = UIAlertController(
-        title: "",
-        message: "",
-        preferredStyle: .alert)
-    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -100,10 +95,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
             guard let statisticService = statisticService else { return }
+            //Сохраняем результат
+            statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
+            //Готовим сообщение
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
             let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
-            statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
             let text = """
             Ваш результат: \(correctAnswers)/10
             Количество сыгранных квизов: \(statisticService.gamesCount)
@@ -114,7 +111,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                 title: "Этот раунд окончен!",
                 message: text,
                 buttonText: "Сыграть ещё раз")
-            self.alertPresenter?.show(quiz: viewModel, alert: self.alert)
+            self.alertPresenter?.show(quiz: viewModel)
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
         } else {

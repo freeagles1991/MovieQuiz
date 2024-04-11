@@ -17,9 +17,11 @@ final class AlertPresenter{
         self.delegate = delegate
     }
     
-    func show(quiz result: AlertModel, alert: UIAlertController) {
-        alert.title = result.title
-        alert.message = result.message
+    func show(quiz result: AlertModel) {
+        let alert = UIAlertController(
+            title: result.title,
+            message: result.message,
+            preferredStyle: .alert)
             
         let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
             guard let self = self else { return }

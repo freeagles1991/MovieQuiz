@@ -90,7 +90,7 @@ final class StatisticServiceImplementation: StatisticService{
         gamesList.append(newGameResults)
         gamesCount += 1
         totalAccuracy = countAccuracyInList(gamesList)
-        guard bestGame.compareResults(bestGame) else {
+        guard bestGame.compareResults(newGameResult: newGameResults, previousGameRecord: bestGame) else {
             return
         }
         bestGame = newGameResults
