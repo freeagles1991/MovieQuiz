@@ -8,6 +8,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
     
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
     private var currentQuestionIndex = 0
@@ -25,11 +26,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        questionFactory = QuestionFactory(delegate: self)
+        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         alertPresenter = AlertPresenter(delegate: self)
         statisticService = StatisticServiceImplementation()
         
-        questionFactory?.requestNextQuestion()
+        showLoadingIndicator()
+        questionFactory?.loadData()
         
         imageView.layer.cornerRadius = 20
         noButton.layer.cornerRadius = 15
@@ -49,6 +51,16 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                 self?.show(quiz: viewModel)
         }
     }
+    
+    func didLoadDataFromServer() {
+        activityIndicator.isHidden = true // скрываем индикатор загрузки
+        questionFactory?.requestNextQuestion()
+    }
+
+    func didFailToLoadData(with error: Error) {
+        showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
+    }
+    
     // MARK: - AlertPresenterDelegate
     func didResultsWasShown() {
         self.currentQuestionIndex = 0
@@ -59,7 +71,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let question = QuizStepViewModel(
-            image: UIImage(named: model.image) ?? UIImage(),
+            image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return question
@@ -110,7 +122,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
             let viewModel = AlertModel(
                 title: "Этот раунд окончен!",
                 message: text,
-                buttonText: "Сыграть ещё раз")
+                buttonText: "Сыграть ещё раз") { }
             self.alertPresenter?.show(quiz: viewModel)
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
@@ -128,6 +140,34 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     private func enableButtons(){
         yesButton.isEnabled = true
         noButton.isEnabled = true
+    }
+    
+    private func showLoadingIndicator() {
+        activityIndicator.isHidden = false // говорим, что индикатор загрузки не скрыт
+        activityIndicator.startAnimating() // включаем анимацию
+    }
+    
+    func hideLoadingIndicator() {
+        activityIndicator.isHidden = true // говорим, что индикатор загрузки не скрыт
+        activityIndicator.stopAnimating() // включаем анимацию
+    }
+    
+    //Показывает ошибку сети
+    private func showNetworkError(message: String) {
+        hideLoadingIndicator()
+        
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
+            
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            
+            self.questionFactory?.requestNextQuestion()
+        }
+        
+        alertPresenter?.show(quiz: model)
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {

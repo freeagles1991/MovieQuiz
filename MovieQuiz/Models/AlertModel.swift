@@ -11,7 +11,12 @@ struct AlertModel{
     var title: String
     var message: String
     var buttonText: String
+    var closure: (() -> Void)
     
-    func completion(){
+    init(title: String, message: String, buttonText: String, closure: @escaping () -> Void) {
+        self.title = title
+        self.message = message
+        self.buttonText = buttonText
+        self.closure = closure
     }
 }
