@@ -123,7 +123,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                 title: "Этот раунд окончен!",
                 message: text,
                 buttonText: "Сыграть ещё раз") { }
-            self.alertPresenter?.show(quiz: viewModel)
+            self.alertPresenter?.show(quiz: viewModel, identifier: "Game Results")
             self.currentQuestionIndex = 0
             self.correctAnswers = 0
         } else {
@@ -167,7 +167,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
             self.questionFactory?.requestNextQuestion()
         }
         
-        alertPresenter?.show(quiz: model)
+        alertPresenter?.show(quiz: model, identifier: "Network error")
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {

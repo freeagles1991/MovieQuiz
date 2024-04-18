@@ -17,7 +17,7 @@ final class AlertPresenter{
         self.delegate = delegate
     }
     
-    func show(quiz result: AlertModel) {
+    func show(quiz result: AlertModel, identifier: String) {
         let alert = UIAlertController(
             title: result.title,
             message: result.message,
@@ -27,7 +27,8 @@ final class AlertPresenter{
             guard let self = self else { return }
             self.delegate?.didResultsWasShown()
         }
-
+        
+        alert.view.accessibilityIdentifier = identifier
         alert.addAction(action)
         
         delegate?.present(alert, animated: true, completion: nil)
