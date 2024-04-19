@@ -97,7 +97,7 @@
                                                     </userDefinedRuntimeAttribute>
                                                 </userDefinedRuntimeAttributes>
                                                 <connections>
-                                                    <action selector="yesButtonClicked:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Xbz-Le-04g"/>
+                                                    <action selector="yesButtonClicked:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Wnn-HL-USq"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -128,7 +128,7 @@
                         <outlet property="imageView" destination="3HD-RR-mGo" id="yhz-p4-boM"/>
                         <outlet property="noButton" destination="cfg-RU-UhO" id="JpM-Fq-CkP"/>
                         <outlet property="textLabel" destination="rJH-Pu-7zs" id="ZsI-sn-kCv"/>
-                        <outlet property="yesButton" destination="sBU-pA-qdh" id="pJi-PP-6Nx"/>
+                        <outlet property="yesButton" destination="sBU-pA-qdh" id="0Os-V8-wcv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

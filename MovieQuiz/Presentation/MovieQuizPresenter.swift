@@ -15,6 +15,10 @@ final class MovieQuizPresenter {
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
     private var currentQuestionIndex: Int = 0
+    //Данные текущего вопроса
+    var currentQuestion: QuizQuestion?
+    
+    weak var viewController: MovieQuizViewController?
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
     func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -27,14 +31,33 @@ final class MovieQuizPresenter {
     
     func isLastQuestion() -> Bool {
             currentQuestionIndex == questionsAmount - 1
-        }
+    }
         
-        func resetQuestionIndex() {
+    func resetQuestionIndex() {
             currentQuestionIndex = 0
-        }
+    }
         
-        func switchToNextQuestion() {
+    func switchToNextQuestion() {
             currentQuestionIndex += 1
+    }
+    
+    func yesButtonClicked() {
+        didAnswer(isYes: true)
+    }
+    
+    func noButtonClicked() {
+        didAnswer(isYes: false)
+    }
+    
+    private func didAnswer(isYes: Bool) {
+        guard let currentQuestion = currentQuestion else {
+                return
         }
+            
+        let givenAnswer = isYes
+            
+        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        viewController?.disableButtons()
+    }
 }
 
