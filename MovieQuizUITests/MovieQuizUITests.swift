@@ -57,13 +57,13 @@ final class MovieQuizUITests: XCTestCase {
     }
     
     func testNoButton() {
-        sleep(3)
+        sleep(5)
         
         let firstPoster = app.images["Poster"]
         let firstPosterData = firstPoster.screenshot().pngRepresentation
         
         app.buttons["No"].tap()
-        sleep(3)
+        sleep(5)
         
         let indexLabel = app.staticTexts["Index"]
         let secondPoster = app.images["Poster"]
@@ -76,12 +76,12 @@ final class MovieQuizUITests: XCTestCase {
     func testFinishAlert() {
         sleep(3)
         
-        for _ in 0...9 {
+        for _ in 1...10 {
             app.buttons["No"].tap()
             sleep(3)
         }
         
-        let alert = app.alerts["Game Result"]
+        let alert = app.alerts["Game Results"]
             
         XCTAssertTrue(alert.exists)
         XCTAssertTrue(alert.label == "Этот раунд окончен!")

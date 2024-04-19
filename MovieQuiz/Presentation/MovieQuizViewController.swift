@@ -9,18 +9,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     @IBOutlet private weak var yesButton: UIButton!
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    // переменная с индексом текущего вопроса, начальное значение 0
-    // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
-    private var currentQuestionIndex = 0
     
     // переменная со счётчиком правильных ответов, начальное значение закономерно 0
     private var correctAnswers = 0
     
-    private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticServiceImplementation?
+    private let presenter = MovieQuizPresenter()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -46,7 +43,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
         }
 
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
                 self?.show(quiz: viewModel)
         }
@@ -63,18 +60,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     
     // MARK: - AlertPresenterDelegate
     func didResultsWasShown() {
-        self.currentQuestionIndex = 0
+        presenter.resetQuestionIndex()
         self.correctAnswers = 0
         questionFactory?.requestNextQuestion()
-    }
-    
-    // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let question = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return question
     }
     
     // приватный метод, который меняет цвет рамки
@@ -105,10 +93,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
     // приватный метод, который содержит логику перехода в один из сценариев
     // метод ничего не принимает и ничего не возвращает
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             guard let statisticService = statisticService else { return }
             //Сохраняем результат
-            statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
+            statisticService.store(correct: self.correctAnswers, total: presenter.questionsAmount)
             //Готовим сообщение
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
@@ -124,10 +112,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                 message: text,
                 buttonText: "Сыграть ещё раз") { }
             self.alertPresenter?.show(quiz: viewModel, identifier: "Game Results")
-            self.currentQuestionIndex = 0
+            presenter.resetQuestionIndex()
             self.correctAnswers = 0
         } else {
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             self.questionFactory?.requestNextQuestion()
         }
     }
@@ -161,7 +149,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate{
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             
-            self.currentQuestionIndex = 0
+            presenter.resetQuestionIndex()
             self.correctAnswers = 0
             
             self.questionFactory?.requestNextQuestion()

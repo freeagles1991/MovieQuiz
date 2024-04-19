@@ -28,9 +28,9 @@ final class AlertPresenter{
             self.delegate?.didResultsWasShown()
         }
         
-        alert.view.accessibilityIdentifier = identifier
         alert.addAction(action)
-        
+        alert.view.accessibilityIdentifier = identifier
+
         delegate?.present(alert, animated: true, completion: nil)
     }
 }
