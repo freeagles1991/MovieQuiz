@@ -8,23 +8,30 @@
 import Foundation
 import UIKit
 
-final class MovieQuizPresenter {
+final class MovieQuizPresenter: QuestionFactoryDelegate {
     //Число вопросов в раунде
-    let questionsAmount: Int = 10
-    
+    private let questionsAmount: Int = 10
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
     private var currentQuestionIndex: Int = 0
     //Данные текущего вопроса
-    var currentQuestion: QuizQuestion?
+    private var currentQuestion: QuizQuestion?
     //Счетчик правильных ответов
-    var correctAnswers: Int = 0
+    private var correctAnswers: Int = 0
     //ViewController
-    weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewController?
     //Фабрика вопросов
-    var questionFactory: QuestionFactoryProtocol?
+    private var questionFactory: QuestionFactoryProtocol?
     //Сервис сбора статистики игр
     var statisticService: StatisticServiceImplementation?
+    
+    init(viewController: MovieQuizViewController) {
+            self.viewController = viewController
+            
+            questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+            questionFactory?.loadData()
+            viewController.showLoadingIndicator()
+        }
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
     func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -44,8 +51,8 @@ final class MovieQuizPresenter {
 
         currentQuestion = question
         let viewModel = convert(model: question)
-        DispatchQueue.main.async { [weak viewController] in
-                viewController?.show(quiz: viewModel)
+        DispatchQueue.main.async { [weak self ] in
+            self?.viewController?.show(quiz: viewModel)
         }
     }
     
@@ -71,7 +78,7 @@ final class MovieQuizPresenter {
                 message: text,
                 buttonText: "Сыграть ещё раз") { }
             viewController?.alertPresenter.show(quiz: viewModel, identifier: "Game Results")
-            self.resetQuestionIndex()
+            self.restartGame()
             self.correctAnswers = 0
         } else {
             self.switchToNextQuestion()
@@ -79,18 +86,30 @@ final class MovieQuizPresenter {
         }
     }
     
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: Error) {
+        viewController?.showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
+    }
+    
     func isLastQuestion() -> Bool {
-            currentQuestionIndex == questionsAmount - 1
+        currentQuestionIndex == questionsAmount - 1
     }
         
-    func resetQuestionIndex() {
-            currentQuestionIndex = 0
+    func restartGame() {
+        currentQuestionIndex = 0
+        correctAnswers = 0
+        questionFactory?.requestNextQuestion()
     }
         
     func switchToNextQuestion() {
-            currentQuestionIndex += 1
+        currentQuestionIndex += 1
     }
     
+    // MARK: - Кнопки ДА и Нет
     func yesButtonClicked() {
         didAnswer(isYes: true)
     }
@@ -108,6 +127,12 @@ final class MovieQuizPresenter {
             
         viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
         viewController?.disableButtons()
+    }
+    
+    func didAnswer(isCorrectAnswer: Bool){
+        if isCorrectAnswer{
+            correctAnswers += 1
+        }
     }
 }
 
