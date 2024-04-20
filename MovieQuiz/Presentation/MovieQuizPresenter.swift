@@ -17,8 +17,14 @@ final class MovieQuizPresenter {
     private var currentQuestionIndex: Int = 0
     //Данные текущего вопроса
     var currentQuestion: QuizQuestion?
-    
+    //Счетчик правильных ответов
+    var correctAnswers: Int = 0
+    //ViewController
     weak var viewController: MovieQuizViewController?
+    //Фабрика вопросов
+    var questionFactory: QuestionFactoryProtocol?
+    //Сервис сбора статистики игр
+    var statisticService: StatisticServiceImplementation?
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
     func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -27,6 +33,50 @@ final class MovieQuizPresenter {
             question: model.text,
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
         return question
+    }
+    
+    // MARK: - QuestionFactoryDelegate
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        // проверка, что вопрос не nil
+        guard let question = question else {
+            return
+        }
+
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        DispatchQueue.main.async { [weak viewController] in
+                viewController?.show(quiz: viewModel)
+        }
+    }
+    
+    // приватный метод, который содержит логику перехода в один из сценариев
+    // метод ничего не принимает и ничего не возвращает
+    func showNextQuestionOrResults() {
+        if self.isLastQuestion() {
+            guard let statisticService = statisticService else { return }
+            //Сохраняем результат
+            statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
+            //Готовим сообщение
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
+            let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
+            let text = """
+            Ваш результат: \(correctAnswers)/10
+            Количество сыгранных квизов: \(statisticService.gamesCount)
+            Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(formattedDate))
+            Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
+            """
+            let viewModel = AlertModel(
+                title: "Этот раунд окончен!",
+                message: text,
+                buttonText: "Сыграть ещё раз") { }
+            viewController?.alertPresenter.show(quiz: viewModel, identifier: "Game Results")
+            self.resetQuestionIndex()
+            self.correctAnswers = 0
+        } else {
+            self.switchToNextQuestion()
+            questionFactory?.requestNextQuestion()
+        }
     }
     
     func isLastQuestion() -> Bool {
