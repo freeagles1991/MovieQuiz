@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-    //Число вопросов в раунде
+//Число вопросов в раунде
     private let questionsAmount: Int = 10
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
@@ -56,6 +56,17 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
+    // показывает результат ответа на вопрос
+    func proceedWithAnswer(isCorrectAnswer: Bool) {
+        didAnswer(isCorrectAnswer: isCorrectAnswer)
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrectAnswer)
+        // запускаем задачу через 1 секунду c помощью диспетчера задач
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            self.proceedToNextQuestionOrResults()
+        }
+    }
+    
     private func makeResultsMessage() -> String {
         guard let statisticService = statisticService else { return "" }
         //Сохраняем результат
@@ -75,13 +86,13 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     // приватный метод, который содержит логику перехода в один из сценариев
     // метод ничего не принимает и ничего не возвращает
-    func showNextQuestionOrResults() {
+    func proceedToNextQuestionOrResults() {
         if self.isLastQuestion() {
             let viewModel = AlertModel(
                 title: "Этот раунд окончен!",
                 message: makeResultsMessage(),
                 buttonText: "Сыграть ещё раз") { }
-            viewController?.alertPresenter.show(quiz: viewModel, identifier: "Game Results")
+            viewController?.alertPresenter?.show(quiz: viewModel, identifier: "Game Results")
             self.restartGame()
             self.correctAnswers = 0
         } else {
@@ -129,7 +140,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             
         let givenAnswer = isYes
             
-        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        proceedWithAnswer(isCorrectAnswer: givenAnswer == currentQuestion.correctAnswer)
         viewController?.disableButtons()
     }
     

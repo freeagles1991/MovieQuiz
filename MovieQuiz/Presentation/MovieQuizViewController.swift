@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
@@ -10,8 +10,8 @@ final class MovieQuizViewController: UIViewController {
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    var alertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
+    private var alertPresenter: AlertPresenter?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -19,7 +19,7 @@ final class MovieQuizViewController: UIViewController {
         
         presenter = MovieQuizPresenter(viewController: self)
         alertPresenter = AlertPresenter(delegate: self)
-
+        
         showLoadingIndicator()
         
         imageView.layer.cornerRadius = 20
@@ -32,21 +32,14 @@ final class MovieQuizViewController: UIViewController {
         presenter.restartGame()
     }
     
-    // приватный метод, который меняет цвет рамки
-    // принимает на вход булевое значение и ничего не возвращает
-    func showAnswerResult(isCorrect: Bool) {
-        presenter.didAnswer(isCorrectAnswer: isCorrect)
+    //меняет цвет рамки в зависимости от верности ответа
+    func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true // даём разрешение на рисование рамки
         imageView.layer.borderWidth = 8 // толщина рамки
-        imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        // запускаем задачу через 1 секунду c помощью диспетчера задач
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-            guard let self = self else { return }
-            self.presenter.showNextQuestionOrResults()
-        }
+        imageView.layer.borderColor = isCorrectAnswer ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
     }
     
-    // приватный метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
+    // метод вывода на экран вопроса, который принимает на вход вью модель вопроса и ничего не возвращает
     func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
         textLabel.text = step.question
@@ -87,7 +80,7 @@ final class MovieQuizViewController: UIViewController {
             self.presenter.restartGame()
         }
         
-        alertPresenter.show(quiz: model, identifier: "Network error")
+        alertPresenter?.show(quiz: model, identifier: "Network error")
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {

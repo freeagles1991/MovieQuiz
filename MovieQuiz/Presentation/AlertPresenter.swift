@@ -8,12 +8,16 @@
 import Foundation
 import UIKit
 
+
+protocol AlertPresenterDelegate: UIViewController {
+    func didResultsWasShown()
+}
 // приватный метод для показа результатов раунда квиза
 // принимает вью модель QuizResultsViewModel и ничего не возвращает
 final class AlertPresenter{
-    weak var delegate: MovieQuizViewController?
+    weak var delegate: AlertPresenterDelegate?
     
-    init(delegate: MovieQuizViewController? = nil) {
+    init(delegate: AlertPresenterDelegate? = nil) {
         self.delegate = delegate
     }
     
