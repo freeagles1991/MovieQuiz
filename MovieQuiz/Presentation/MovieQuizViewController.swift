@@ -12,18 +12,14 @@ final class MovieQuizViewController: UIViewController {
     
     var alertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
-    //Сервис сбора статистики игр
-    private var statisticService: StatisticServiceImplementation?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         presenter = MovieQuizPresenter(viewController: self)
-        statisticService = StatisticServiceImplementation()
-        presenter.statisticService = statisticService
         alertPresenter = AlertPresenter(delegate: self)
-        
+
         showLoadingIndicator()
         
         imageView.layer.cornerRadius = 20

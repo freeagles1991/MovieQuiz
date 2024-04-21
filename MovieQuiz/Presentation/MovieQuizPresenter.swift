@@ -23,11 +23,11 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     //Фабрика вопросов
     private var questionFactory: QuestionFactoryProtocol?
     //Сервис сбора статистики игр
-    var statisticService: StatisticServiceImplementation?
+    var statisticService: StatisticService!
     
     init(viewController: MovieQuizViewController) {
             self.viewController = viewController
-            
+            statisticService = StatisticServiceImplementation()
             questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
             questionFactory?.loadData()
             viewController.showLoadingIndicator()
@@ -56,26 +56,30 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
+    private func makeResultsMessage() -> String {
+        guard let statisticService = statisticService else { return "" }
+        //Сохраняем результат
+        statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
+        //Готовим сообщение
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
+        let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
+        let text = """
+        Ваш результат: \(correctAnswers)/10
+        Количество сыгранных квизов: \(statisticService.gamesCount)
+        Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(formattedDate))
+        Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
+        """
+        return text
+    }
+    
     // приватный метод, который содержит логику перехода в один из сценариев
     // метод ничего не принимает и ничего не возвращает
     func showNextQuestionOrResults() {
         if self.isLastQuestion() {
-            guard let statisticService = statisticService else { return }
-            //Сохраняем результат
-            statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
-            //Готовим сообщение
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
-            let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
-            let text = """
-            Ваш результат: \(correctAnswers)/10
-            Количество сыгранных квизов: \(statisticService.gamesCount)
-            Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(formattedDate))
-            Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
-            """
             let viewModel = AlertModel(
                 title: "Этот раунд окончен!",
-                message: text,
+                message: makeResultsMessage(),
                 buttonText: "Сыграть ещё раз") { }
             viewController?.alertPresenter.show(quiz: viewModel, identifier: "Game Results")
             self.restartGame()
