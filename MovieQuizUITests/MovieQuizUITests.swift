@@ -97,7 +97,9 @@ final class MovieQuizUITests: XCTestCase {
         
         let alert = app.alerts["Game results"]
         sleep(2)
-        alert.buttons.firstMatch.tap()
+        let buttonToTap = alert.buttons.firstMatch
+        XCTAssertTrue(buttonToTap.exists)
+        buttonToTap.tap()
         sleep(2)
         
         let indexLabel = app.staticTexts["Index"]

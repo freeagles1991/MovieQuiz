@@ -26,6 +26,8 @@ final class AlertPresenter{
             title: result.title,
             message: result.message,
             preferredStyle: .alert)
+        
+        alert.view.accessibilityIdentifier = identifier
             
         let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
             guard let self = self else { return }
@@ -33,7 +35,6 @@ final class AlertPresenter{
         }
         
         alert.addAction(action)
-        alert.view.accessibilityIdentifier = identifier
 
         delegate?.present(alert, animated: true, completion: nil)
     }
