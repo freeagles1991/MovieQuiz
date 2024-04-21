@@ -19,7 +19,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     //Счетчик правильных ответов
     private var correctAnswers: Int = 0
     //ViewController
-    private weak var viewController: MovieQuizViewController?
+    private weak var viewController: MovieQuizViewControllerProtocol?
     //Фабрика вопросов
     private var questionFactory: QuestionFactoryProtocol?
     //Сервис сбора статистики игр
@@ -27,7 +27,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     //Сервис показа алертов
     private var alertPresenter: AlertPresenter?
     
-    init(viewController: MovieQuizViewController) {
+    init(viewController: MovieQuizViewControllerProtocol) {
             self.viewController = viewController
             alertPresenter = AlertPresenter(delegate: viewController)
             statisticService = StatisticServiceImplementation()
@@ -37,7 +37,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
         let question = QuizStepViewModel(
             image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
