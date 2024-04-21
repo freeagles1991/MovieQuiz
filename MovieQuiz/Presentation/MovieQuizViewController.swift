@@ -11,14 +11,12 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private var presenter: MovieQuizPresenter!
-    private var alertPresenter: AlertPresenter?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
         presenter = MovieQuizPresenter(viewController: self)
-        alertPresenter = AlertPresenter(delegate: self)
         
         showLoadingIndicator()
         
@@ -66,21 +64,6 @@ final class MovieQuizViewController: UIViewController, AlertPresenterDelegate {
     func hideLoadingIndicator() {
         activityIndicator.isHidden = true // говорим, что индикатор загрузки не скрыт
         activityIndicator.stopAnimating() // включаем анимацию
-    }
-    
-    //Показывает ошибку сети
-    func showNetworkError(message: String) {
-        hideLoadingIndicator()
-        
-        let model = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
-            guard let self = self else { return }
-            
-            self.presenter.restartGame()
-        }
-        
-        alertPresenter?.show(quiz: model, identifier: "Network error")
     }
     
     @IBAction private func noButtonClicked(_ sender: UIButton) {

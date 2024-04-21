@@ -23,10 +23,13 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     //Фабрика вопросов
     private var questionFactory: QuestionFactoryProtocol?
     //Сервис сбора статистики игр
-    var statisticService: StatisticService!
+    private var statisticService: StatisticService!
+    //Сервис показа алертов
+    private var alertPresenter: AlertPresenter?
     
     init(viewController: MovieQuizViewController) {
             self.viewController = viewController
+            alertPresenter = AlertPresenter(delegate: viewController)
             statisticService = StatisticServiceImplementation()
             questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
             questionFactory?.loadData()
@@ -34,7 +37,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     
     // приватный метод конвертации, который принимает моковый вопрос и возвращает вью модель для главного экрана
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
+    private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let question = QuizStepViewModel(
             image: UIImage(data: model.image) ?? UIImage(),
             question: model.text,
@@ -57,7 +60,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     // показывает результат ответа на вопрос
-    func proceedWithAnswer(isCorrectAnswer: Bool) {
+    private func proceedWithAnswer(isCorrectAnswer: Bool) {
         didAnswer(isCorrectAnswer: isCorrectAnswer)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrectAnswer)
         // запускаем задачу через 1 секунду c помощью диспетчера задач
@@ -84,15 +87,30 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         return text
     }
     
+    //Показывает ошибку сети
+    private func showNetworkError(message: String) {
+        viewController?.hideLoadingIndicator()
+        
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
+            
+            self.restartGame()
+        }
+        
+        alertPresenter?.show(quiz: model, identifier: "Network error")
+    }
+    
     // приватный метод, который содержит логику перехода в один из сценариев
     // метод ничего не принимает и ничего не возвращает
-    func proceedToNextQuestionOrResults() {
+    private func proceedToNextQuestionOrResults() {
         if self.isLastQuestion() {
             let viewModel = AlertModel(
                 title: "Этот раунд окончен!",
                 message: makeResultsMessage(),
                 buttonText: "Сыграть ещё раз") { }
-            viewController?.alertPresenter?.show(quiz: viewModel, identifier: "Game Results")
+            alertPresenter?.show(quiz: viewModel, identifier: "Game Results")
             self.restartGame()
             self.correctAnswers = 0
         } else {
@@ -107,7 +125,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     func didFailToLoadData(with error: Error) {
-        viewController?.showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
+        showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
     }
     
     func isLastQuestion() -> Bool {
@@ -144,7 +162,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.disableButtons()
     }
     
-    func didAnswer(isCorrectAnswer: Bool){
+    private func didAnswer(isCorrectAnswer: Bool){
         if isCorrectAnswer{
             correctAnswers += 1
         }
