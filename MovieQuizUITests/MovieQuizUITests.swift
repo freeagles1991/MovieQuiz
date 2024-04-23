@@ -89,18 +89,17 @@ final class MovieQuizUITests: XCTestCase {
     }
     
     func testAlertDismiss() {
-        sleep(2)
-        for _ in 0...9 {
+        sleep(3)
+        for _ in 1...10 {
             app.buttons["No"].tap()
-            sleep(2)
+            sleep(3)
         }
         
         let alert = app.alerts["Game results"]
-        sleep(2)
-        let buttonToTap = alert.buttons.firstMatch
+        let buttonToTap = alert.popUpButtons.firstMatch
         XCTAssertTrue(buttonToTap.exists)
         buttonToTap.tap()
-        sleep(2)
+        sleep(3)
         
         let indexLabel = app.staticTexts["Index"]
         

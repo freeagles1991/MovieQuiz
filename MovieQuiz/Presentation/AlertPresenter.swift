@@ -12,8 +12,7 @@ import UIKit
 protocol AlertPresenterDelegate: UIViewController {
     func didResultsWasShown()
 }
-// приватный метод для показа результатов раунда квиза
-// принимает вью модель QuizResultsViewModel и ничего не возвращает
+
 final class AlertPresenter{
     weak var delegate: AlertPresenterDelegate?
     

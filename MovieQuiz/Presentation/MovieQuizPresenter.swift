@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-//Число вопросов в раунде
+    //Число вопросов в раунде
     private let questionsAmount: Int = 10
     // переменная с индексом текущего вопроса, начальное значение 0
     // (по этому индексу будем искать вопрос в массиве, где индекс первого элемента 0, а не 1)
@@ -18,6 +18,8 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private var currentQuestion: QuizQuestion?
     //Счетчик правильных ответов
     private var correctAnswers: Int = 0
+    //Форматирование даты
+    let dateFormatter = DateFormatter()
     //ViewController
     private weak var viewController: MovieQuizViewControllerProtocol?
     //Фабрика вопросов
@@ -47,7 +49,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        // проверка, что вопрос не nil
         guard let question = question else {
             return
         }
@@ -63,7 +64,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private func proceedWithAnswer(isCorrectAnswer: Bool) {
         didAnswer(isCorrectAnswer: isCorrectAnswer)
         viewController?.highlightImageBorder(isCorrectAnswer: isCorrectAnswer)
-        // запускаем задачу через 1 секунду c помощью диспетчера задач
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else { return }
             self.proceedToNextQuestionOrResults()
@@ -75,7 +75,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         //Сохраняем результат
         statisticService.store(correct: self.correctAnswers, total: self.questionsAmount)
         //Готовим сообщение
-        let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yy HH:mm:ss"
         let formattedDate = dateFormatter.string(from: statisticService.bestGame.date)
         let text = """
@@ -125,7 +124,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     }
     
     func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription) // возьмём в качестве сообщения описание ошибки
+        showNetworkError(message: error.localizedDescription)
     }
     
     func isLastQuestion() -> Bool {
